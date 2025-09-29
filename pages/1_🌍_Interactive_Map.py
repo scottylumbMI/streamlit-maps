@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import text
 import pandas as pd
 import geopandas as gpd
+import plotly.express as px
 
 
 
@@ -66,31 +67,50 @@ st.sidebar.image(logo)
 
 st.title("Interactive Map")
 
-col1, col2 = st.columns([4, 1])
+col_map, col_chart = st.columns([4, 1])
 options = list(leafmap.basemaps.keys())
 index = options.index("OpenTopoMap")
 
-gdf_path_regions = r"C:\Users\Scotty Lumb\code\python\streamlit-maps\data\nr_regions.shp"
-
 gdf_regions = gdf_import()
 
-with col2:
-
-    basemap = st.selectbox("Select a basemap:", options, index)
-
-
-with col1:
-
+with col_map:
     m = leafmap.Map(
         locate_control=True, latlon_control=True, draw_export=True, minimap_control=True
     )
-        
+    
     m.add_gdf(gdf_regions, layer_name="Regions")
-    # # Add shapefile if it exists
-    # if os.path.exists(gdf_path_regions):
-    #     m.add_shp(gdf_path_regions, layer_name="Resource Regions")
-    # else:
-    #     st.warning(f"Shapefile not found at {gdf_path_regions}")
-        
+    basemap = st.selectbox("Select a basemap:", options, index)
     m.add_basemap(basemap)
-    m.to_streamlit(height=700)
+
+    # Use selectbox for region selection
+    selected_name = st.selectbox("Select a region", gdf_regions["rgn_name"].tolist())
+
+
+    m.to_streamlit(height=700, return_selected=True)
+
+
+with col_chart:
+    if selected_name:
+
+        df_selected = gdf_regions[gdf_regions["rgn_name"] == selected_name]
+
+        # Melt wide year columns into long format
+        df_melted = df_selected.melt(
+            id_vars=["rgn_name"], 
+            value_vars=[f"vol_{y}" for y in range(2010, 2026)],
+            var_name="Year",
+            value_name="Total Volume"
+        )
+        df_melted["Year"] = df_melted["Year"].str.replace("vol_", "").astype(int)
+
+        # Plot bar chart
+        fig = px.bar(
+            df_melted, 
+            x="Year", 
+            y="Total Volume", 
+            title=f"Harvest Volume for {selected_name}",
+            labels={"Total Volume": "Harvest Volume"}
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.write("Click a region on the map to see its harvest volume by year.")
