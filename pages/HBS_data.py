@@ -54,20 +54,9 @@ def gdf_import():
 
 
 
-markdown = """
-A Streamlit map template
-<https://github.com/opengeos/streamlit-map-template>
-"""
+st.title("HBS data")
 
-st.sidebar.title("About")
-st.sidebar.info(markdown)
-logo = "https://i.imgur.com/UbOXYAU.png"
-st.sidebar.image(logo)
-
-
-st.title("Interactive Map")
-
-col_map, col_chart = st.columns([4, 1])
+col_map, col_chart = st.columns([3, 1])
 options = list(leafmap.basemaps.keys())
 index = options.index("OpenTopoMap")
 
