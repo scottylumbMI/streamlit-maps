@@ -18,14 +18,26 @@ print("Creating database engine...")
 engine = create_engine(f'postgresql://{db_user}:{db_pass}@{db_host}/{db_name}')
 
 sql = '''
-SELECT DISTINCT 
-    'scale_site',
-    'species_code',
-    'product_code',
-    'region_harvested_description',
-    'mgmt_unit_type_description',
-    'mgmt_unit_id'
+SELECT
+    scale_site::text,
+    species_code::text,
+    product_code::text,
+    region_harvested_description::text,
+    mgmt_unit_type_description::text,
+    mgmt_unit_id::text,
+    EXTRACT(YEAR FROM scaling_date) AS year,
+    EXTRACT(MONTH FROM scaling_date) AS month,
+    SUM(total_volume_scaled) AS total_volume_scaled
 FROM public.hbs_history
+GROUP BY
+    scale_site,
+    species_code,
+    product_code,
+    region_harvested_description,
+    mgmt_unit_type_description,
+    mgmt_unit_id,
+    year,
+    month
 '''
 
 
@@ -38,12 +50,13 @@ chunks = pd.read_sql(sql, engine, chunksize=50000)
 
 for i, chunk in enumerate(chunks):
     
+    print (f"running chunh {i} ")
     # Ensure scaling_date is datetime
-    chunk['scaling_date'] = pd.to_datetime(chunk['scaling_date'], errors='coerce')
+    # chunk['scaling_date'] = pd.to_datetime(chunk['scaling_date'], errors='coerce')
     
-    # Create year and month columns
-    chunk['year'] = chunk['scaling_date'].dt.year
-    chunk['month'] = chunk['scaling_date'].dt.month
+    # # Create year and month columns
+    # chunk['year'] = chunk['scaling_date'].dt.year
+    # chunk['month'] = chunk['scaling_date'].dt.month
     
     # append to parquet
     chunk.to_parquet(
