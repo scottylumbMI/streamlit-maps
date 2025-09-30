@@ -98,4 +98,20 @@ if {selected_mgmt_unit_ids}:
     mask &= df_filtered["mgmt_unit_id"].isin({selected_mgmt_unit_ids})
 df_filtered = df_filtered[mask]
 """
+
+if selected_scale_sites:
+    code_lines.append(f"mask &= df_filtered['scale_site'].isin({selected_scale_sites})")
+if selected_spp_codes:
+    code_lines.append(f"mask &= df_filtered['species_code'].isin({selected_spp_codes})")
+if selected_products:
+    code_lines.append(f"mask &= df_filtered['product_code'].isin({selected_products})")
+if selected_mgmt_unit_types:
+    code_lines.append(f"mask &= df_filtered['mgmt_unit_type_description'].isin({selected_mgmt_unit_types})")
+if selected_mgmt_unit_ids:
+    code_lines.append(f"mask &= df_filtered['mgmt_unit_id'].isin({selected_mgmt_unit_ids})")
+
+code_lines.append("df_filtered = df_filtered[mask]")
+
+# Join lines into a single string for Streamlit
+code_snippet = "\n".join(code_lines)
 st.code(code_snippet, language="python")
