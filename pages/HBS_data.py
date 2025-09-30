@@ -56,7 +56,7 @@ if not df_filtered.empty:
         df_filtered,
         x="year",
         y="total_volume_scaled",
-        color="region_harvested_description",
+        color="species_code",
         labels={"total_volume_scaled": "Harvest Volume", "year": "Year"},
     )
     st.plotly_chart(fig, use_container_width=True)

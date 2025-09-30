@@ -17,6 +17,7 @@ db_pass = os.environ["PG_PASS"]
 print("Creating database engine...")
 engine = create_engine(f'postgresql://{db_user}:{db_pass}@{db_host}/{db_name}')
 
+#SQL to group by (dissolve) by as few fields as possible. intended to reduce record count
 sql = '''
 SELECT
     scale_site::text,
@@ -41,23 +42,14 @@ GROUP BY
 '''
 
 
-# df = pd.read_sql(sql, engine)
-# df.to_parquet(r"C:/Users/Scotty Lumb/code/python/streamlit-maps/data/hbs_history.parquet", index=False)
-
-
-# read in chunks
+# read in chunks takes 20gb of ram if loaded at once
 chunks = pd.read_sql(sql, engine, chunksize=50000)
 
 for i, chunk in enumerate(chunks):
     
-    print (f"running chunh {i} ")
-    # Ensure scaling_date is datetime
-    # chunk['scaling_date'] = pd.to_datetime(chunk['scaling_date'], errors='coerce')
-    
-    # # Create year and month columns
-    # chunk['year'] = chunk['scaling_date'].dt.year
-    # chunk['month'] = chunk['scaling_date'].dt.month
-    
+    print (f"running chunk {i} ")
+
+
     # append to parquet
     chunk.to_parquet(
         r"C:/Users/Scotty Lumb/code/python/streamlit-maps/data/hbs_history.parquet", 
